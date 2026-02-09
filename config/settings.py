@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     auth_username: Optional[str] = Field(default=None, description="Default username")
     auth_password: Optional[str] = Field(default=None, description="Default password")
 
+    # Dev Environment
+    dev_api_url: Optional[str] = Field(default=None, description="Dev environment API URL")
+    dev_tenant_id: str = Field(default="dev", description="Tenant ID for Dev")
+    dev_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Dev")
+    dev_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Dev")
+    dev_locale_portuguese: Optional[str] = Field(default="pt_MZ", alias="dev_locale_portugueseh", description="Portuguese locale for Dev")
+
     # UAT Environment
     uat_api_url: Optional[str] = Field(default=None, description="UAT environment API URL")
     uat_tenant_id: str = Field(default="mz", description="Tenant ID for UAT")
@@ -64,6 +71,13 @@ class Settings(BaseSettings):
         """Get all config for an environment as a dict."""
         env = env.lower()
         env_configs = {
+            "dev": {
+                "api_url": self.dev_api_url,
+                "tenant_id": self.dev_tenant_id,
+                "english": self.dev_locale_english,
+                "french": self.dev_locale_french,
+                "portuguese": self.dev_locale_portuguese,
+            },
             "uat": {
                 "api_url": self.uat_api_url,
                 "tenant_id": self.uat_tenant_id,
@@ -94,7 +108,7 @@ class Settings(BaseSettings):
             },
         }
         if env not in env_configs:
-            raise ValueError(f"Unknown environment: {env}. Must be one of: uat, demo, qa, temp")
+            raise ValueError(f"Unknown environment: {env}. Must be one of: dev, uat, demo, qa, temp")
         return env_configs[env]
 
     def get_api_url(self, env: str) -> str:

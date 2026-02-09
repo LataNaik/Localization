@@ -438,7 +438,7 @@ def validate(
         table.add_row("Source Environment", settings.source_env)
         table.add_row("Target Environment", settings.target_env)
 
-        for env_name in ["uat", "demo", "qa", "temp"]:
+        for env_name in ["dev", "qa", "uat", "demo", "temp"]:
             try:
                 url = settings.get_api_url(env_name)
                 tenant = settings.get_tenant_id(env_name)
