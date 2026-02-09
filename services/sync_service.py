@@ -242,12 +242,13 @@ class SyncService:
         source_tenant = self.settings.get_tenant_id(source_env)
         source_locale = self.settings.get_locale(source_env, lang)
 
-        target_url = self.settings.get_api_url(target_env)
-        target_key = self.settings.get_api_key(target_env)
+        target_url = self.settings.get_upsert_url(target_env)
+        target_key = self.settings.get_api_key(target_env) if not self.settings.is_localhost else None
         target_tenant = self.settings.get_tenant_id(target_env)
         target_locale = self.settings.get_locale(target_env, lang)
 
-        logger.info(f"Upsert: {source_env} → {target_env}")
+        upsert_target = f"localhost:{self.settings.localhost_port}" if self.settings.is_localhost else target_env
+        logger.info(f"Upsert: {source_env} → {upsert_target}")
         logger.info(f"Source: {source_url} | tenant={source_tenant}, locale={source_locale}")
         logger.info(f"Target: {target_url} | tenant={target_tenant}, locale={target_locale}")
         logger.info(f"Module: {module or 'all'}")
@@ -412,10 +413,11 @@ class SyncService:
     ) -> SyncResult:
         """Upsert specific messages to target environment (from file)."""
         start_time = time.time()
-        target_url = self.settings.get_api_url(target_env)
-        target_key = self.settings.get_api_key(target_env)
+        target_url = self.settings.get_upsert_url(target_env)
+        target_key = self.settings.get_api_key(target_env) if not self.settings.is_localhost else None
 
-        logger.info(f"Upserting {len(messages)} messages to {target_env}")
+        upsert_target = f"localhost:{self.settings.localhost_port}" if self.settings.is_localhost else target_env
+        logger.info(f"Upserting {len(messages)} messages to {upsert_target}")
 
         try:
             # Authenticate against target environment

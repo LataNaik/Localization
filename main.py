@@ -110,8 +110,13 @@ def upsert(
     source_tenant = settings.get_tenant_id(source_env)
     target_tenant = settings.get_tenant_id(target_env)
 
-    console.print(f"[cyan]Upserting localizations: {source_env} → {target_env}[/cyan]")
-    console.print(f"[dim]Language: {lang.upper()}[/dim]")
+    if settings.is_localhost:
+        upsert_target = f"localhost:{settings.localhost_port}"
+    else:
+        upsert_target = target_env
+
+    console.print(f"[cyan]Upserting localizations: {source_env} → {upsert_target}[/cyan]")
+    console.print(f"[dim]Mode: {settings.upsert_mode.upper()} | Language: {lang.upper()}[/dim]")
     console.print(f"[dim]Source: tenant={source_tenant}, locale={source_locale}[/dim]")
     console.print(f"[dim]Target: tenant={target_tenant}, locale={target_locale}[/dim]")
     console.print(f"[dim]Module: {module or 'all'}[/dim]")
@@ -291,8 +296,13 @@ def upsert_from_file(
         raise typer.Exit(1)
 
     messages = [LocalizationMessage(**msg) for msg in messages_data]
-    console.print(f"[cyan]Upserting {len(messages)} messages to {target_env}...[/cyan]")
-    console.print(f"[dim]Tenant: {tenant_id}, Module: {module}, Locale: {locale}[/dim]")
+    if settings.is_localhost:
+        upsert_target = f"localhost:{settings.localhost_port}"
+    else:
+        upsert_target = target_env
+
+    console.print(f"[cyan]Upserting {len(messages)} messages to {upsert_target}...[/cyan]")
+    console.print(f"[dim]Mode: {settings.upsert_mode.upper()} | Tenant: {tenant_id}, Module: {module}, Locale: {locale}[/dim]")
 
     service = SyncService(settings, requests_dir=requests_dir)
     result = asyncio.run(

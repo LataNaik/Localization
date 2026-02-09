@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     source_env: str = Field(default="qa", description="Source environment to search from")
     target_env: str = Field(default="uat", description="Target environment to upsert to")
 
+    # Upsert mode: "auth" (remote TARGET_ENV) or "localhost"
+    upsert_mode: str = Field(default="auth", description="Upsert mode: 'auth' or 'localhost'")
+    localhost_port: int = Field(default=8765, description="Localhost port when upsert_mode=localhost")
+
     # Authentication (same credentials work for all environments)
     auth_client_credentials: str = Field(
         default="ZWdvdi11c2VyLWNsaWVudDo=",
@@ -120,6 +124,17 @@ class Settings(BaseSettings):
         """Get the auth URL for a specific environment (derived from API URL)."""
         base_url = self.get_api_url(env)
         return f"{base_url.rstrip('/')}/user/oauth/token"
+
+    @property
+    def is_localhost(self) -> bool:
+        """Check if upsert mode is localhost."""
+        return self.upsert_mode.lower() == "localhost"
+
+    def get_upsert_url(self, env: str) -> str:
+        """Get the upsert base URL — localhost or remote based on upsert_mode."""
+        if self.is_localhost:
+            return f"http://localhost:{self.localhost_port}"
+        return self.get_api_url(env)
 
     def get_locale(self, env: str, language: str) -> str:
         """
