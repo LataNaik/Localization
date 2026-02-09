@@ -139,7 +139,6 @@ class SyncService:
             Tuple of (messages, search_response_path, upsert_body_path)
         """
         source_url = self.settings.get_api_url(source_env)
-        source_key = self.settings.get_api_key(source_env)
         source_tenant = self.settings.get_tenant_id(source_env)
         source_locale = self.settings.get_locale(source_env, lang)
 
@@ -151,7 +150,6 @@ class SyncService:
         # Fetch from source env
         async with SearchClient(
             base_url=source_url,
-            api_key=source_key,
             request_info=search_request_info,
         ) as search_client:
             messages = await search_client.search(
@@ -238,12 +236,10 @@ class SyncService:
         start_time = time.time()
 
         source_url = self.settings.get_api_url(source_env)
-        source_key = self.settings.get_api_key(source_env)
         source_tenant = self.settings.get_tenant_id(source_env)
         source_locale = self.settings.get_locale(source_env, lang)
 
         target_url = self.settings.get_upsert_url(target_env)
-        target_key = self.settings.get_api_key(target_env) if not self.settings.is_localhost else None
         target_tenant = self.settings.get_tenant_id(target_env)
         target_locale = self.settings.get_locale(target_env, lang)
 
@@ -280,7 +276,6 @@ class SyncService:
             # Search from source environment
             async with SearchClient(
                 base_url=source_url,
-                api_key=source_key,
                 request_info=search_request_info,
             ) as search_client:
                 logger.info(f"Fetching localizations from {source_env}...")
@@ -355,7 +350,6 @@ class SyncService:
                 # Upsert to target environment
                 async with UpsertClient(
                     base_url=target_url,
-                    api_key=target_key,
                     request_info=upsert_request_info,
                 ) as upsert_client:
                     upsert_results = await upsert_client.upsert_batch(
@@ -414,7 +408,6 @@ class SyncService:
         """Upsert specific messages to target environment (from file)."""
         start_time = time.time()
         target_url = self.settings.get_upsert_url(target_env)
-        target_key = self.settings.get_api_key(target_env) if not self.settings.is_localhost else None
 
         upsert_target = f"localhost:{self.settings.localhost_port}" if self.settings.is_localhost else target_env
         logger.info(f"Upserting {len(messages)} messages to {upsert_target}")
@@ -449,7 +442,6 @@ class SyncService:
 
             async with UpsertClient(
                 base_url=target_url,
-                api_key=target_key,
                 request_info=upsert_request_info,
             ) as upsert_client:
                 upsert_results = await upsert_client.upsert_batch(

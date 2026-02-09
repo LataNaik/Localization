@@ -34,7 +34,6 @@ class Settings(BaseSettings):
 
     # UAT Environment
     uat_api_url: Optional[str] = Field(default=None, description="UAT environment API URL")
-    uat_api_key: Optional[str] = Field(default=None, description="UAT environment API key")
     uat_tenant_id: str = Field(default="mz", description="Tenant ID for UAT")
     uat_locale_english: Optional[str] = Field(default="en_IN", description="English locale for UAT")
     uat_locale_french: Optional[str] = Field(default="fr_IN", description="French locale for UAT")
@@ -42,7 +41,6 @@ class Settings(BaseSettings):
 
     # Demo Environment
     demo_api_url: Optional[str] = Field(default=None, description="Demo environment API URL")
-    demo_api_key: Optional[str] = Field(default=None, description="Demo environment API key")
     demo_tenant_id: str = Field(default="mz", description="Tenant ID for Demo")
     demo_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Demo")
     demo_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Demo")
@@ -50,19 +48,17 @@ class Settings(BaseSettings):
 
     # QA Environment
     qa_api_url: Optional[str] = Field(default=None, description="QA environment API URL")
-    qa_api_key: Optional[str] = Field(default=None, description="QA environment API key")
     qa_tenant_id: str = Field(default="mz", description="Tenant ID for QA")
     qa_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for QA")
     qa_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for QA")
     qa_locale_portuguese: Optional[str] = Field(default="pt_MZ", description="Portuguese locale for QA")
 
-    # Prod Environment
-    prod_api_url: Optional[str] = Field(default=None, description="Production environment API URL")
-    prod_api_key: Optional[str] = Field(default=None, description="Production environment API key")
-    prod_tenant_id: str = Field(default="mz", description="Tenant ID for Prod")
-    prod_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Prod")
-    prod_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Prod")
-    prod_locale_portuguese: Optional[str] = Field(default="pt_MZ", description="Portuguese locale for Prod")
+    # Temp Environment
+    temp_api_url: Optional[str] = Field(default=None, description="Temp environment API URL")
+    temp_tenant_id: str = Field(default="mz", description="Tenant ID for Temp")
+    temp_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Temp")
+    temp_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Temp")
+    temp_locale_portuguese: Optional[str] = Field(default="pt_MZ", alias="temp_locale_portugueseh", description="Portuguese locale for Temp")
 
     def _get_env_config(self, env: str) -> dict:
         """Get all config for an environment as a dict."""
@@ -70,7 +66,6 @@ class Settings(BaseSettings):
         env_configs = {
             "uat": {
                 "api_url": self.uat_api_url,
-                "api_key": self.uat_api_key,
                 "tenant_id": self.uat_tenant_id,
                 "english": self.uat_locale_english,
                 "french": self.uat_locale_french,
@@ -78,7 +73,6 @@ class Settings(BaseSettings):
             },
             "demo": {
                 "api_url": self.demo_api_url,
-                "api_key": self.demo_api_key,
                 "tenant_id": self.demo_tenant_id,
                 "english": self.demo_locale_english,
                 "french": self.demo_locale_french,
@@ -86,23 +80,21 @@ class Settings(BaseSettings):
             },
             "qa": {
                 "api_url": self.qa_api_url,
-                "api_key": self.qa_api_key,
                 "tenant_id": self.qa_tenant_id,
                 "english": self.qa_locale_english,
                 "french": self.qa_locale_french,
                 "portuguese": self.qa_locale_portuguese,
             },
-            "prod": {
-                "api_url": self.prod_api_url,
-                "api_key": self.prod_api_key,
-                "tenant_id": self.prod_tenant_id,
-                "english": self.prod_locale_english,
-                "french": self.prod_locale_french,
-                "portuguese": self.prod_locale_portuguese,
+            "temp": {
+                "api_url": self.temp_api_url,
+                "tenant_id": self.temp_tenant_id,
+                "english": self.temp_locale_english,
+                "french": self.temp_locale_french,
+                "portuguese": self.temp_locale_portuguese,
             },
         }
         if env not in env_configs:
-            raise ValueError(f"Unknown environment: {env}. Must be one of: uat, demo, qa, prod")
+            raise ValueError(f"Unknown environment: {env}. Must be one of: uat, demo, qa, temp")
         return env_configs[env]
 
     def get_api_url(self, env: str) -> str:
@@ -111,10 +103,6 @@ class Settings(BaseSettings):
         if not url:
             raise ValueError(f"No API URL configured for environment: {env}")
         return url
-
-    def get_api_key(self, env: str) -> Optional[str]:
-        """Get the API key for a specific environment."""
-        return self._get_env_config(env)["api_key"]
 
     def get_tenant_id(self, env: str) -> str:
         """Get the tenant ID for a specific environment."""

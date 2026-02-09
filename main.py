@@ -438,14 +438,12 @@ def validate(
         table.add_row("Source Environment", settings.source_env)
         table.add_row("Target Environment", settings.target_env)
 
-        for env_name in ["uat", "demo", "qa", "prod"]:
+        for env_name in ["uat", "demo", "qa", "temp"]:
             try:
                 url = settings.get_api_url(env_name)
                 tenant = settings.get_tenant_id(env_name)
-                key = settings.get_api_key(env_name)
                 table.add_row(f"{env_name.upper()} API URL", url or "Not set")
                 table.add_row(f"{env_name.upper()} Tenant", tenant)
-                table.add_row(f"{env_name.upper()} API Key", "***" if key else "Not set")
             except ValueError:
                 table.add_row(f"{env_name.upper()}", "Not configured")
 

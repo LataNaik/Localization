@@ -19,13 +19,11 @@ class UpsertClient:
     def __init__(
         self,
         base_url: str,
-        api_key: Optional[str] = None,
         timeout: float = 60.0,
         max_retries: int = 3,
         request_info: Optional[RequestInfo] = None,
     ):
         self.base_url = base_url.rstrip("/")
-        self.api_key = api_key
         self.timeout = timeout
         self.max_retries = max_retries
         self.request_info = request_info or RequestInfo()
@@ -36,7 +34,6 @@ class UpsertClient:
         cls,
         base_url: str,
         json_path: str | Path,
-        api_key: Optional[str] = None,
         timeout: float = 60.0,
         max_retries: int = 3,
     ) -> "UpsertClient":
@@ -64,7 +61,6 @@ class UpsertClient:
 
         return cls(
             base_url=base_url,
-            api_key=api_key,
             timeout=timeout,
             max_retries=max_retries,
             request_info=request_info,
@@ -80,8 +76,6 @@ class UpsertClient:
             "Content-Type": "application/json",
             "Accept": "application/json",
         }
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
         return headers
 
     async def _get_client(self) -> httpx.AsyncClient:

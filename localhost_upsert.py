@@ -256,11 +256,8 @@ def main(
 
             # Search from source environment (remote)
             source_url = settings.get_api_url(source_env)
-            source_key = settings.get_api_key(source_env)
-
             async with SearchClient(
                 base_url=source_url,
-                api_key=source_key,
                 request_info=search_request_info,
             ) as search_client:
                 logger.info(f"Fetching localizations from {source_env}...")
