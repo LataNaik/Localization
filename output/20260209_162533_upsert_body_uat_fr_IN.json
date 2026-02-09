@@ -1,0 +1,51 @@
+{
+  "tenantId": "mz",
+  "module": "hcm-login",
+  "locale": "fr_IN",
+  "messages": [
+    {
+      "code": "LOGIN_ACTION_LABEL",
+      "message": "Connexion",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "PASSWORD_PLACEHOLDER",
+      "message": "Mot de passe",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "PASSWORD_PLACEHOLDER_IS_REQUIRED",
+      "message": "Le mot de passe est requis",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "STOCK_RECONCILIATION_COUNT_EXPECTS_NUMBER",
+      "message": "Nombre",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "UNABLE_TO_LOGIN",
+      "message": "Impossible de se connecter",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "USER_ID_PLACEHOLDER",
+      "message": "Identifiant de l'utilisateur",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    },
+    {
+      "code": "USER_ID_PLACEHOLDER_IS_REQUIRED",
+      "message": "L'identifiant de l'utilisateur est requis",
+      "module": "hcm-login",
+      "locale": "fr_IN"
+    }
+  ],
+  "targetEnv": "uat",
+  "totalCount": 7
+}

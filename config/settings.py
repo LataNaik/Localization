@@ -1,0 +1,159 @@
+"""Environment configuration using pydantic-settings."""
+
+from functools import lru_cache
+from typing import Optional
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment variables."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    # Source and Target environments
+    source_env: str = Field(default="qa", description="Source environment to search from")
+    target_env: str = Field(default="uat", description="Target environment to upsert to")
+
+    # Authentication (same credentials work for all environments)
+    auth_client_credentials: str = Field(
+        default="ZWdvdi11c2VyLWNsaWVudDo=",
+        description="Base64 encoded client credentials for Basic auth",
+    )
+    auth_username: Optional[str] = Field(default=None, description="Default username")
+    auth_password: Optional[str] = Field(default=None, description="Default password")
+
+    # UAT Environment
+    uat_api_url: Optional[str] = Field(default=None, description="UAT environment API URL")
+    uat_api_key: Optional[str] = Field(default=None, description="UAT environment API key")
+    uat_tenant_id: str = Field(default="mz", description="Tenant ID for UAT")
+    uat_locale_english: Optional[str] = Field(default="en_IN", description="English locale for UAT")
+    uat_locale_french: Optional[str] = Field(default="fr_IN", description="French locale for UAT")
+    uat_locale_portuguese: Optional[str] = Field(default="pt_IN", alias="uat_locale_portugueseh", description="Portuguese locale for UAT")
+
+    # Demo Environment
+    demo_api_url: Optional[str] = Field(default=None, description="Demo environment API URL")
+    demo_api_key: Optional[str] = Field(default=None, description="Demo environment API key")
+    demo_tenant_id: str = Field(default="mz", description="Tenant ID for Demo")
+    demo_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Demo")
+    demo_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Demo")
+    demo_locale_portuguese: Optional[str] = Field(default="pt_MZ", alias="demo_locale_portugueseh", description="Portuguese locale for Demo")
+
+    # QA Environment
+    qa_api_url: Optional[str] = Field(default=None, description="QA environment API URL")
+    qa_api_key: Optional[str] = Field(default=None, description="QA environment API key")
+    qa_tenant_id: str = Field(default="mz", description="Tenant ID for QA")
+    qa_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for QA")
+    qa_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for QA")
+    qa_locale_portuguese: Optional[str] = Field(default="pt_MZ", description="Portuguese locale for QA")
+
+    # Prod Environment
+    prod_api_url: Optional[str] = Field(default=None, description="Production environment API URL")
+    prod_api_key: Optional[str] = Field(default=None, description="Production environment API key")
+    prod_tenant_id: str = Field(default="mz", description="Tenant ID for Prod")
+    prod_locale_english: Optional[str] = Field(default="en_MZ", description="English locale for Prod")
+    prod_locale_french: Optional[str] = Field(default="fr_MZ", description="French locale for Prod")
+    prod_locale_portuguese: Optional[str] = Field(default="pt_MZ", description="Portuguese locale for Prod")
+
+    def _get_env_config(self, env: str) -> dict:
+        """Get all config for an environment as a dict."""
+        env = env.lower()
+        env_configs = {
+            "uat": {
+                "api_url": self.uat_api_url,
+                "api_key": self.uat_api_key,
+                "tenant_id": self.uat_tenant_id,
+                "english": self.uat_locale_english,
+                "french": self.uat_locale_french,
+                "portuguese": self.uat_locale_portuguese,
+            },
+            "demo": {
+                "api_url": self.demo_api_url,
+                "api_key": self.demo_api_key,
+                "tenant_id": self.demo_tenant_id,
+                "english": self.demo_locale_english,
+                "french": self.demo_locale_french,
+                "portuguese": self.demo_locale_portuguese,
+            },
+            "qa": {
+                "api_url": self.qa_api_url,
+                "api_key": self.qa_api_key,
+                "tenant_id": self.qa_tenant_id,
+                "english": self.qa_locale_english,
+                "french": self.qa_locale_french,
+                "portuguese": self.qa_locale_portuguese,
+            },
+            "prod": {
+                "api_url": self.prod_api_url,
+                "api_key": self.prod_api_key,
+                "tenant_id": self.prod_tenant_id,
+                "english": self.prod_locale_english,
+                "french": self.prod_locale_french,
+                "portuguese": self.prod_locale_portuguese,
+            },
+        }
+        if env not in env_configs:
+            raise ValueError(f"Unknown environment: {env}. Must be one of: uat, demo, qa, prod")
+        return env_configs[env]
+
+    def get_api_url(self, env: str) -> str:
+        """Get the API URL for a specific environment."""
+        url = self._get_env_config(env)["api_url"]
+        if not url:
+            raise ValueError(f"No API URL configured for environment: {env}")
+        return url
+
+    def get_api_key(self, env: str) -> Optional[str]:
+        """Get the API key for a specific environment."""
+        return self._get_env_config(env)["api_key"]
+
+    def get_tenant_id(self, env: str) -> str:
+        """Get the tenant ID for a specific environment."""
+        return self._get_env_config(env)["tenant_id"]
+
+    def get_auth_url(self, env: str) -> str:
+        """Get the auth URL for a specific environment (derived from API URL)."""
+        base_url = self.get_api_url(env)
+        return f"{base_url.rstrip('/')}/user/oauth/token"
+
+    def get_locale(self, env: str, language: str) -> str:
+        """
+        Get the locale for a specific environment and language.
+
+        Args:
+            env: Environment name (uat, demo, qa, prod)
+            language: Language code (en, fr, pt)
+
+        Returns:
+            Locale string (e.g., en_MZ, en_IN)
+        """
+        lang_map = {
+            "en": "english",
+            "english": "english",
+            "fr": "french",
+            "french": "french",
+            "pt": "portuguese",
+            "portuguese": "portuguese",
+        }
+        lang_key = lang_map.get(language.lower())
+        if not lang_key:
+            raise ValueError(f"Unknown language: {language}. Must be one of: en, fr, pt")
+
+        config = self._get_env_config(env)
+        locale = config.get(lang_key)
+        if not locale:
+            raise ValueError(f"No {lang_key} locale configured for environment: {env}")
+        return locale
+
+
+@lru_cache
+def get_settings(env_file: Optional[str] = None) -> Settings:
+    """Get cached settings instance."""
+    if env_file:
+        return Settings(_env_file=env_file)
+    return Settings()
