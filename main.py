@@ -66,7 +66,7 @@ def upsert(
         None,
         "--module",
         "-m",
-        help="Module name filter",
+        help="Module name(s), comma-separated (e.g. digit-ui,hcm-common)",
     ),
     batch_size: int = typer.Option(
         100,
@@ -115,31 +115,41 @@ def upsert(
     else:
         upsert_target = target_env
 
+    modules = [m.strip() for m in module.split(",")] if module else [None]
+
     console.print(f"[cyan]Upserting localizations: {source_env} → {upsert_target}[/cyan]")
     console.print(f"[dim]Mode: {settings.upsert_mode.upper()} | Language: {lang.upper()}[/dim]")
     console.print(f"[dim]Source: tenant={source_tenant}, locale={source_locale}[/dim]")
     console.print(f"[dim]Target: tenant={target_tenant}, locale={target_locale}[/dim]")
-    console.print(f"[dim]Module: {module or 'all'}[/dim]")
+    console.print(f"[dim]Modules: {', '.join(m for m in modules if m) or 'all'}[/dim]")
 
     output_dir = Path("output")
     service = SyncService(settings, requests_dir=requests_dir, output_dir=output_dir)
-    result = asyncio.run(
-        service.upsert(
-            source_env=source_env,
-            target_env=target_env,
-            lang=lang,
-            module=module,
-            batch_size=batch_size,
-            username=settings.auth_username,
-            password=settings.auth_password,
+    has_failure = False
+
+    for mod in modules:
+        if len(modules) > 1:
+            console.print(f"\n[bold cyan]--- Module: {mod} ---[/bold cyan]")
+
+        result = asyncio.run(
+            service.upsert(
+                source_env=source_env,
+                target_env=target_env,
+                lang=lang,
+                module=mod,
+                batch_size=batch_size,
+                username=settings.auth_username,
+                password=settings.auth_password,
+            )
         )
-    )
 
-    console.print(f"[dim]Output files saved to: {output_dir.absolute()}[/dim]")
+        display_result(result)
+        if not result.success:
+            has_failure = True
 
-    display_result(result)
+    console.print(f"\n[dim]Output files saved to: {output_dir.absolute()}[/dim]")
 
-    if not result.success:
+    if has_failure:
         raise typer.Exit(1)
 
 
@@ -155,7 +165,7 @@ def search(
         None,
         "--module",
         "-m",
-        help="Module name filter",
+        help="Module name(s), comma-separated (e.g. digit-ui,hcm-common)",
     ),
     env_file: Optional[Path] = typer.Option(
         None,
@@ -197,39 +207,49 @@ def search(
     source_locale = settings.get_locale(source_env, lang)
     target_locale = settings.get_locale(target_env, lang)
 
+    modules = [m.strip() for m in module.split(",")] if module else [None]
+
     console.print(f"[cyan]Fetching localizations from {source_env}...[/cyan]")
     console.print(f"[dim]Language: {lang.upper()}, Locale: {source_locale}[/dim]")
-    console.print(f"[dim]Module: {module or 'all'}[/dim]")
+    console.print(f"[dim]Modules: {', '.join(m for m in modules if m) or 'all'}[/dim]")
     if target_locale != source_locale:
         console.print(f"[dim]Will also save upsert body for {target_env} (locale: {target_locale})[/dim]")
 
     service = SyncService(settings, requests_dir=requests_dir, output_dir=output_dir)
+    has_failure = False
 
-    async def do_fetch():
-        return await service.fetch_and_save(
-            source_env=source_env,
-            lang=lang,
-            module=module,
-            target_env=target_env,
-        )
+    for mod in modules:
+        if len(modules) > 1:
+            console.print(f"\n[bold cyan]--- Module: {mod} ---[/bold cyan]")
 
-    try:
-        messages, search_file, upsert_file = asyncio.run(do_fetch())
+        try:
+            messages, search_file, upsert_file = asyncio.run(
+                service.fetch_and_save(
+                    source_env=source_env,
+                    lang=lang,
+                    module=mod,
+                    target_env=target_env,
+                )
+            )
 
-        table = Table(title="Search Result")
-        table.add_column("Metric", style="cyan")
-        table.add_column("Value", style="green")
+            table = Table(title=f"Search Result{f' — {mod}' if mod else ''}")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
 
-        table.add_row("Total Messages", str(len(messages)))
-        table.add_row("Search Response Saved", str(search_file))
-        if upsert_file:
-            table.add_row("Upsert Body Saved", str(upsert_file))
+            table.add_row("Total Messages", str(len(messages)))
+            table.add_row("Search Response Saved", str(search_file))
+            if upsert_file:
+                table.add_row("Upsert Body Saved", str(upsert_file))
 
-        console.print(table)
-        console.print(f"[green]Search completed. Files saved to: {output_dir.absolute()}[/green]")
+            console.print(table)
 
-    except Exception as e:
-        console.print(f"[red]Search failed: {e}[/red]")
+        except Exception as e:
+            console.print(f"[red]Search failed for {mod or 'all'}: {e}[/red]")
+            has_failure = True
+
+    console.print(f"\n[green]Files saved to: {output_dir.absolute()}[/green]")
+
+    if has_failure:
         raise typer.Exit(1)
 
 
