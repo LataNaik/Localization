@@ -98,6 +98,39 @@ Test authentication.
 python3 main.py login --username LNMZ
 ```
 
+### Batch
+
+Execute all upsert commands from a commands file sequentially. Reads `commands.txt` (or a custom file), parses `--lang` and `--module` from each line, and runs them one by one.
+
+```bash
+# Run all commands from the default commands.txt
+python3 main.py batch
+
+# Use a custom commands file
+python3 main.py batch --file my_commands.txt
+
+# With options
+python3 main.py batch --batch-size 50 --verbose
+```
+
+The commands file supports:
+- Lines starting with `python3 main.py upsert --lang ... --module ...`
+- `#` comments
+- Section headers (e.g., `English`, `French`) are skipped automatically
+- Blank lines and `___` separator lines are skipped
+
+Example `commands.txt`:
+
+```
+# English
+python3 main.py upsert --lang en --module hcm-login,hcm-common,hcm-scanner
+python3 main.py upsert --lang en --module hcm-campaignmanager,digit-ui
+
+# French
+python3 main.py upsert --lang fr --module hcm-login,hcm-common,hcm-scanner
+python3 main.py upsert --lang fr --module hcm-campaignmanager,digit-ui
+```
+
 ### Validate
 
 Check configuration and request files.
@@ -111,6 +144,7 @@ python3 main.py validate
 ```
 localization_framework/
 ├── main.py              # CLI entry point
+├── commands.txt         # Batch commands file (all modules x languages)
 ├── config/
 │   └── settings.py      # Pydantic settings (loads .env)
 ├── models/

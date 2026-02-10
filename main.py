@@ -494,5 +494,141 @@ def validate(
         raise typer.Exit(1)
 
 
+@app.command("batch")
+def batch(
+    commands_file: Path = typer.Option(
+        Path("commands.txt"),
+        "--file",
+        "-f",
+        help="Path to commands file listing upsert commands to execute",
+    ),
+    batch_size: int = typer.Option(
+        100,
+        "--batch-size",
+        "-b",
+        help="Number of items per batch",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env-file",
+        help="Path to environment file",
+    ),
+    requests_dir: Path = typer.Option(
+        Path("requests"),
+        "--requests-dir",
+        "-r",
+        help="Directory containing request JSON files",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose logging",
+    ),
+) -> None:
+    """Execute all upsert commands from a commands file sequentially."""
+    setup_logging(verbose)
+
+    if not commands_file.exists():
+        console.print(f"[red]Commands file not found: {commands_file}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        env_file_str = str(env_file) if env_file else None
+        settings = get_settings(env_file_str)
+    except Exception as e:
+        console.print(f"[red]Failed to load settings: {e}[/red]")
+        raise typer.Exit(1)
+
+    # Parse commands from file
+    commands: list[dict[str, str]] = []
+    with open(commands_file) as f:
+        for line in f:
+            line = line.strip()
+            # Skip empty lines, comments (#), and separator lines (underscores)
+            if not line or line.startswith("#") or line.startswith("_"):
+                continue
+            # Skip section headers (lines without "python" or "--")
+            if "main.py" not in line and "--" not in line:
+                continue
+
+            # Extract --lang and --module from the command
+            parts = line.split()
+            lang_val = None
+            module_val = None
+            for i, part in enumerate(parts):
+                if part in ("--lang", "-l") and i + 1 < len(parts):
+                    lang_val = parts[i + 1]
+                elif part in ("--module", "-m") and i + 1 < len(parts):
+                    module_val = parts[i + 1]
+
+            if lang_val:
+                commands.append({"lang": lang_val, "module": module_val or ""})
+
+    if not commands:
+        console.print("[yellow]No commands found in file[/yellow]")
+        raise typer.Exit(0)
+
+    console.print(f"[cyan]Found {len(commands)} commands in {commands_file}[/cyan]")
+    console.print(f"[dim]Source: {settings.source_env} -> Target: {settings.target_env}[/dim]")
+    console.print()
+
+    source_env = settings.source_env
+    target_env = settings.target_env
+    output_dir = Path("output")
+    service = SyncService(settings, requests_dir=requests_dir, output_dir=output_dir)
+
+    total = len(commands)
+    passed = 0
+    failed = 0
+
+    for idx, cmd in enumerate(commands, 1):
+        lang = cmd["lang"]
+        module_str = cmd["module"]
+        modules = [m.strip() for m in module_str.split(",")] if module_str else [None]
+        module_label = module_str or "all"
+
+        console.print(f"[bold cyan]━━━ [{idx}/{total}] lang={lang} module={module_label} ━━━[/bold cyan]")
+
+        cmd_failed = False
+        for mod in modules:
+            if len(modules) > 1:
+                console.print(f"  [dim]Module: {mod}[/dim]")
+
+            result = asyncio.run(
+                service.upsert(
+                    source_env=source_env,
+                    target_env=target_env,
+                    lang=lang,
+                    module=mod,
+                    batch_size=batch_size,
+                    username=settings.auth_username,
+                    password=settings.auth_password,
+                )
+            )
+
+            display_result(result)
+            if not result.success:
+                cmd_failed = True
+
+        if cmd_failed:
+            failed += 1
+        else:
+            passed += 1
+
+    # Summary
+    console.print()
+    summary = Table(title="Batch Summary")
+    summary.add_column("Metric", style="cyan")
+    summary.add_column("Value", style="green" if failed == 0 else "yellow")
+    summary.add_row("Total Commands", str(total))
+    summary.add_row("Passed", str(passed))
+    summary.add_row("Failed", str(failed))
+    console.print(summary)
+
+    if failed > 0:
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()
