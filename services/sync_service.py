@@ -94,11 +94,10 @@ class SyncService:
         env: str,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        tenant_id: Optional[str] = None,
     ) -> AuthResponse:
         """Authenticate and get access token for a specific environment."""
         auth_url = self.settings.get_auth_url(env)
-        resolved_tenant = tenant_id or self.settings.get_tenant_id(env)
+        resolved_tenant = self.settings.get_tenant_id(env)
         logger.info(f"Authenticating against {env}: {auth_url}")
 
         auth_client = AuthClient(
@@ -258,7 +257,6 @@ class SyncService:
                     env=target_env,
                     username=username,
                     password=password,
-                    tenant_id=target_tenant,
                 )
                 token = auth_response.access_token
                 logger.info(f"Login to {target_env} successful")
@@ -421,7 +419,6 @@ class SyncService:
                     env=target_env,
                     username=username,
                     password=password,
-                    tenant_id=tenant_id,
                 )
                 token = auth_response.access_token
                 logger.info(f"Login to {target_env} successful")

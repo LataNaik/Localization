@@ -7,7 +7,7 @@
         "did": "1",
         "key": "",
         "msgId": "",
-        "authToken": "5e533874-f505-431f-b316-21cf7ce50ed2",
+        "authToken": "550a2b29-f1dc-47e6-8311-30c85cdf7895",
         "userInfo": {
             "id": 5139,
             "uuid": "1c69d641-db27-4fc9-9e56-d2fbe5590bf5",
@@ -36,7 +36,7 @@
             "tenantId": "mz"
         }
     },
-    "tenantId": "mz",
+    "tenantId": "dev",
     "module": "hcm-appconfiguration",
     "locale": "pt_MZ",
     "messages": [
@@ -6516,12 +6516,6 @@
         },
         {
             "code": "TRANSLATION_pt_IN",
-            "message": "Português",
-            "module": "hcm-appconfiguration",
-            "locale": "pt_MZ"
-        },
-        {
-            "code": "TRANSLATION_pt_MZ",
             "message": "Português",
             "module": "hcm-appconfiguration",
             "locale": "pt_MZ"
