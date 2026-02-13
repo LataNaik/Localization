@@ -1,52 +1,56 @@
 English
 
-python3 main.py upsert --lang en --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho
-python3 main.py upsert --lang en --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho
-python3 main.py upsert --lang en --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho
-python3 main.py upsert --lang en --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho
-python3 main.py upsert --lang en --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho
-python3 main.py upsert --lang en --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho
-python3 main.py upsert --lang en --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho
-python3 main.py upsert --lang en --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho
+python3 main.py upsert --lang en --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho,hcm-base-complaints-default
+python3 main.py upsert --lang en --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho,hcm-base-hfreferral-default
+python3 main.py upsert --lang en --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho,hcm-base-registration-default
+python3 main.py upsert --lang en --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho,hcm-base-inventory-default
+python3 main.py upsert --lang en --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
+python3 main.py upsert --lang en --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
+python3 main.py upsert --lang en --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
+python3 main.py upsert --lang en --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
 
-python3 main.py upsert --lang en --module hcm-login,hcm-common,hcm-scanner
+
+python3 main.py upsert --lang en --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
 python3 main.py upsert --lang en --module hcm-peer-to-peer,hcm-transit-post,hcm-attendance,hcm-dashboard,digit-privacy-policy
 
 python3 main.py upsert --lang en --module hcm-admin-schemas,hcm-admin-notification,hcm-payments,hcm-hr
 python3 main.py upsert --lang en --module hcm-campaignmanager,digit-ui,hcm-appconfiguration
+python3 main.py upsert --lang en --module rainmaker-common,hcm-dss,rainmaker-hcm-dss
 ___________________________________________________________________________________________________________________________________________
 
 French
 
-python3 main.py upsert --lang fr --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho
-python3 main.py upsert --lang fr --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho
-python3 main.py upsert --lang fr --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho
-python3 main.py upsert --lang fr --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho
-python3 main.py upsert --lang fr --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho
-python3 main.py upsert --lang fr --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho
-python3 main.py upsert --lang fr --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho
-python3 main.py upsert --lang fr --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho
+python3 main.py upsert --lang fr --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho,hcm-base-complaints-default
+python3 main.py upsert --lang fr --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho,hcm-base-hfreferral-default
+python3 main.py upsert --lang fr --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho,hcm-base-registration-default
+python3 main.py upsert --lang fr --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho,hcm-base-inventory-default
+python3 main.py upsert --lang fr --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
+python3 main.py upsert --lang fr --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
+python3 main.py upsert --lang fr --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
+python3 main.py upsert --lang fr --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
 
-python3 main.py upsert --lang fr --module hcm-login,hcm-common,hcm-scanner
+python3 main.py upsert --lang fr --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
 python3 main.py upsert --lang fr --module hcm-peer-to-peer,hcm-transit-post,hcm-attendance,hcm-dashboard,digit-privacy-policy
 
 python3 main.py upsert --lang fr --module hcm-admin-schemas,hcm-admin-notification,hcm-payments,hcm-hr
 python3 main.py upsert --lang fr --module hcm-campaignmanager,digit-ui,hcm-appconfiguration
+python3 main.py upsert --lang fr --module rainmaker-common,hcm-dss,rainmaker-hcm-dss
 ___________________________________________________________________________________________________________________________________________
 
 Portugues
 
-python3 main.py upsert --lang pt --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho
-python3 main.py upsert --lang pt --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho
-python3 main.py upsert --lang pt --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho
-python3 main.py upsert --lang pt --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho
-python3 main.py upsert --lang pt --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho
-python3 main.py upsert --lang pt --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho
-python3 main.py upsert --lang pt --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho
-python3 main.py upsert --lang pt --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho
+python3 main.py upsert --lang pt --module hcm-base-complaints-mr-dn,hcm-base-complaints-bednet,hcm-base-complaints-oncho,hcm-base-complaints-default
+python3 main.py upsert --lang pt --module hcm-base-hfreferral-mr-dn,hcm-base-hfreferral-bednet,hcm-base-hfreferral-oncho,hcm-base-hfreferral-default
+python3 main.py upsert --lang pt --module hcm-base-registration-mr-dn,hcm-base-registration-bednet,hcm-base-registration-oncho,hcm-base-registration-default
+python3 main.py upsert --lang pt --module hcm-base-inventory-mr-dn,hcm-base-inventory-bednet,hcm-base-inventory-oncho,hcm-base-inventory-default
+python3 main.py upsert --lang pt --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
+python3 main.py upsert --lang pt --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
+python3 main.py upsert --lang pt --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
+python3 main.py upsert --lang pt --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
 
-python3 main.py upsert --lang pt --module hcm-login,hcm-common,hcm-scanner
+python3 main.py upsert --lang pt --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
 python3 main.py upsert --lang pt --module hcm-peer-to-peer,hcm-transit-post,hcm-attendance,hcm-dashboard,digit-privacy-policy
 
 python3 main.py upsert --lang pt --module hcm-admin-schemas,hcm-admin-notification,hcm-payments,hcm-hr
 python3 main.py upsert --lang pt --module hcm-campaignmanager,digit-ui,hcm-appconfiguration
+python3 main.py upsert --lang pt --module rainmaker-common,hcm-dss,rainmaker-hcm-dss
