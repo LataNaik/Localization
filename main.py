@@ -626,8 +626,329 @@ def batch(
     summary.add_row("Failed", str(failed))
     console.print(summary)
 
+    # Regenerate the Postman collection after batch completes
+    console.print("\n[cyan]Updating Postman collection...[/cyan]")
+    try:
+        postman_output = Path("Localization_Framework.postman_collection.json")
+        _build_postman_collection(settings, commands_file, requests_dir, postman_output)
+    except Exception as e:
+        console.print(f"[yellow]Warning: Failed to update Postman collection: {e}[/yellow]")
+
     if failed > 0:
         raise typer.Exit(1)
+
+
+def _parse_commands_file(commands_file: Path) -> dict[str, list[str]]:
+    """Parse commands.txt to extract {lang: [modules]} mapping."""
+    lang_modules: dict[str, list[str]] = {}
+    with open(commands_file) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or line.startswith("_"):
+                continue
+            if "main.py" not in line and "--" not in line:
+                continue
+
+            parts = line.split()
+            lang_val = None
+            module_val = None
+            for i, part in enumerate(parts):
+                if part in ("--lang", "-l") and i + 1 < len(parts):
+                    lang_val = parts[i + 1]
+                elif part in ("--module", "-m") and i + 1 < len(parts):
+                    module_val = parts[i + 1]
+
+            if lang_val and module_val:
+                if lang_val not in lang_modules:
+                    lang_modules[lang_val] = []
+                for m in module_val.split(","):
+                    m = m.strip()
+                    if m and m not in lang_modules[lang_val]:
+                        lang_modules[lang_val].append(m)
+    return lang_modules
+
+
+def _build_postman_collection(
+    settings,
+    commands_file: Path,
+    requests_dir: Path,
+    output: Path,
+) -> None:
+    """Authenticate, fetch messages, and write the Postman collection JSON."""
+    from config import Settings
+
+    LANG_CONFIG = {
+        "en": {"name": "English", "locale_var": "{{localeEnglish}}"},
+        "fr": {"name": "French", "locale_var": "{{localeFrench}}"},
+        "pt": {"name": "Portuguese", "locale_var": "{{localePortuguese}}"},
+    }
+
+    lang_modules = _parse_commands_file(commands_file)
+    if not lang_modules:
+        console.print("[yellow]No modules found in commands file — skipping Postman generation[/yellow]")
+        return
+
+    for lang, modules in lang_modules.items():
+        console.print(f"[dim]{LANG_CONFIG.get(lang, {}).get('name', lang)}: {len(modules)} modules[/dim]")
+
+    # Authenticate against the source environment
+    source_env = settings.source_env
+    console.print(f"[cyan]Authenticating against {source_env} for Postman collection...[/cyan]")
+
+    service = SyncService(settings, requests_dir=requests_dir)
+    asyncio.run(service.authenticate(env=source_env))
+    console.print("[green]Authentication successful[/green]")
+
+    # Fetch messages for each language + module
+    search_request_info = service._load_request_info("search.json")
+    if service._auth_token and search_request_info:
+        search_request_info.authToken = service._auth_token
+
+    source_url = settings.get_api_url(source_env)
+    source_tenant = settings.get_tenant_id(source_env)
+
+    all_messages: dict[str, dict[str, list]] = {}
+
+    for lang, modules in lang_modules.items():
+        source_locale = settings.get_locale(source_env, lang)
+        all_messages[lang] = {}
+
+        for mod in modules:
+            console.print(f"[dim]Fetching {lang}/{mod}...[/dim]")
+            try:
+                messages = asyncio.run(
+                    _fetch_messages(source_url, search_request_info, source_locale, mod, source_tenant)
+                )
+                all_messages[lang][mod] = [
+                    {"code": msg.code, "message": msg.message, "module": msg.module, "locale": msg.locale}
+                    for msg in messages
+                ]
+                console.print(f"[dim]  → {len(messages)} messages[/dim]")
+            except Exception as e:
+                console.print(f"[yellow]  Warning: Failed to fetch {lang}/{mod}: {e}[/yellow]")
+                all_messages[lang][mod] = []
+
+    # Build the Postman collection
+    console.print("[cyan]Building Postman collection...[/cyan]")
+
+    auth_folder = {
+        "name": "Auth",
+        "item": [
+            {
+                "name": "Login",
+                "event": [
+                    {
+                        "listen": "test",
+                        "script": {
+                            "type": "text/javascript",
+                            "exec": [
+                                "var jsonData = pm.response.json();",
+                                "if (jsonData.access_token) {",
+                                "    pm.collectionVariables.set(\"auth_token\", jsonData.access_token);",
+                                "    console.log(\"Auth token saved successfully\");",
+                                "}",
+                            ],
+                        },
+                    }
+                ],
+                "request": {
+                    "method": "POST",
+                    "header": [
+                        {"key": "Authorization", "value": "Basic "},
+                        {"key": "Content-Type", "value": "application/x-www-form-urlencoded"},
+                        {"key": "Accept", "value": "application/json, text/plain, */*"},
+                    ],
+                    "body": {
+                        "mode": "urlencoded",
+                        "urlencoded": [
+                            {"key": "username", "value": "{{username}}", "type": "text"},
+                            {"key": "password", "value": "{{password}}", "type": "text"},
+                            {"key": "grant_type", "value": "password", "type": "text"},
+                            {"key": "scope", "value": "read", "type": "text"},
+                            {"key": "tenantId", "value": "{{tenant_id}}", "type": "text"},
+                            {"key": "userType", "value": "EMPLOYEE", "type": "text"},
+                        ],
+                    },
+                    "url": {
+                        "raw": "{{URL}}/user/oauth/token",
+                        "host": ["{{URL}}"],
+                        "path": ["user", "oauth", "token"],
+                    },
+                },
+                "response": [],
+            }
+        ],
+    }
+
+    language_folders = []
+    for lang, modules in lang_modules.items():
+        cfg = LANG_CONFIG.get(lang)
+        if not cfg:
+            console.print(f"[yellow]Skipping unknown language: {lang}[/yellow]")
+            continue
+
+        folder_name = cfg["name"]
+        locale_var = cfg["locale_var"]
+        folder_items = []
+
+        for mod in modules:
+            messages = all_messages.get(lang, {}).get(mod, [])
+            postman_messages = [
+                {"code": msg["code"], "message": msg["message"], "module": mod, "locale": locale_var}
+                for msg in messages
+            ]
+
+            request_body = {
+                "RequestInfo": {
+                    "apiId": "Rainmaker",
+                    "ver": ".01",
+                    "ts": "",
+                    "action": "_search",
+                    "did": "1",
+                    "key": "",
+                    "msgId": "20170310130900|en_IN",
+                    "authToken": "{{auth_token}}",
+                    "userInfo": None,
+                },
+                "tenantId": "mz",
+                "module": mod,
+                "locale": locale_var,
+                "messages": postman_messages,
+            }
+
+            raw_body = json.dumps(request_body, indent=4, ensure_ascii=False)
+
+            folder_items.append(
+                {
+                    "name": mod,
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {"key": "Content-Type", "value": "application/json"},
+                            {"key": "Accept", "value": "application/json"},
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": raw_body,
+                            "options": {"raw": {"language": "json"}},
+                        },
+                        "url": {
+                            "raw": "{{URL}}/localization/messages/v1/_upsert?tenantId={{tenant_id}}",
+                            "host": ["{{URL}}"],
+                            "path": ["localization", "messages", "v1", "_upsert"],
+                            "query": [{"key": "tenantId", "value": "{{tenant_id}}"}],
+                        },
+                    },
+                    "response": [],
+                }
+            )
+
+        language_folders.append({"name": folder_name, "item": folder_items})
+
+    collection = {
+        "info": {
+            "_postman_id": "b9824023-3a7f-4ca2-9fb2-2e35b7ce2ca5",
+            "name": "Localization_Seed_Script",
+            "description": (
+                "API collection for searching and upserting localizations across environments.\n\n"
+                "Setup:\n"
+                "1. Run the Login request first to auto-save the auth token\n"
+                "2. Update collection variables (URL, tenant_id, locales) for your target environment\n"
+                "3. Use language folders to search localizations per module"
+            ),
+            "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        },
+        "item": [auth_folder] + language_folders,
+        "variable": [
+            {"key": "URL", "value": settings.get_api_url(source_env), "type": "string"},
+            {"key": "tenant_id", "value": "mz", "type": "string"},
+            {"key": "username", "value": "", "type": "string"},
+            {"key": "password", "value": "", "type": "string"},
+            {"key": "auth_token", "value": "", "type": "string"},
+            {"key": "localeEnglish", "value": "en_MZ", "type": "string"},
+            {"key": "localeFrench", "value": "fr_MZ", "type": "string"},
+            {"key": "localePortuguese", "value": "pt_MZ", "type": "string"},
+        ],
+    }
+
+    with open(output, "w") as f:
+        json.dump(collection, f, indent=2, ensure_ascii=False)
+
+    # Print summary
+    console.print()
+    table = Table(title="Postman Collection Generated")
+    table.add_column("Language", style="cyan")
+    table.add_column("Modules", style="green")
+    table.add_column("Total Messages", style="green")
+
+    for lang, modules in lang_modules.items():
+        cfg = LANG_CONFIG.get(lang, {})
+        total_msgs = sum(len(all_messages.get(lang, {}).get(mod, [])) for mod in modules)
+        table.add_row(cfg.get("name", lang), str(len(modules)), str(total_msgs))
+
+    console.print(table)
+    console.print(f"\n[green]Collection saved to: {output.absolute()}[/green]")
+
+
+@app.command("generate-postman")
+def generate_postman(
+    commands_file: Path = typer.Option(
+        Path("commands.txt"),
+        "--file",
+        "-f",
+        help="Path to commands file listing modules per language",
+    ),
+    env_file: Optional[Path] = typer.Option(
+        None,
+        "--env-file",
+        help="Path to environment file",
+    ),
+    requests_dir: Path = typer.Option(
+        Path("requests"),
+        "--requests-dir",
+        "-r",
+        help="Directory containing request JSON files",
+    ),
+    output: Path = typer.Option(
+        Path("Localization_Framework.postman_collection.json"),
+        "--output",
+        "-o",
+        help="Output path for the Postman collection JSON",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable verbose logging",
+    ),
+) -> None:
+    """Generate a Postman collection from commands.txt by fetching messages from the source environment."""
+    setup_logging(verbose)
+
+    if not commands_file.exists():
+        console.print(f"[red]Commands file not found: {commands_file}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        env_file_str = str(env_file) if env_file else None
+        settings = get_settings(env_file_str)
+    except Exception as e:
+        console.print(f"[red]Failed to load settings: {e}[/red]")
+        raise typer.Exit(1)
+
+    try:
+        _build_postman_collection(settings, commands_file, requests_dir, output)
+    except Exception as e:
+        console.print(f"[red]Failed to generate Postman collection: {e}[/red]")
+        raise typer.Exit(1)
+
+
+async def _fetch_messages(source_url, request_info, locale, module, tenant_id):
+    """Helper to fetch messages for a single module using SearchClient."""
+    from clients import SearchClient
+
+    async with SearchClient(base_url=source_url, request_info=request_info) as client:
+        return await client.search(locale=locale, module=module, tenant_id=tenant_id)
 
 
 if __name__ == "__main__":

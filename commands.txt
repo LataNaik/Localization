@@ -7,7 +7,7 @@ python3 main.py upsert --lang en --module hcm-base-inventory-mr-dn,hcm-base-inve
 python3 main.py upsert --lang en --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
 python3 main.py upsert --lang en --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
 python3 main.py upsert --lang en --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
-python3 main.py upsert --lang en --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
+python3 main.py upsert --lang en --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-base-permissionhandler-default
 
 
 python3 main.py upsert --lang en --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
@@ -27,7 +27,7 @@ python3 main.py upsert --lang fr --module hcm-base-inventory-mr-dn,hcm-base-inve
 python3 main.py upsert --lang fr --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
 python3 main.py upsert --lang fr --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
 python3 main.py upsert --lang fr --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
-python3 main.py upsert --lang fr --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
+python3 main.py upsert --lang fr --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-base-permissionhandler-default
 
 python3 main.py upsert --lang fr --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
 python3 main.py upsert --lang fr --module hcm-peer-to-peer,hcm-transit-post,hcm-attendance,hcm-dashboard,digit-privacy-policy
@@ -46,7 +46,7 @@ python3 main.py upsert --lang pt --module hcm-base-inventory-mr-dn,hcm-base-inve
 python3 main.py upsert --lang pt --module hcm-base-closehousehold-mr-dn,hcm-base-closehousehold-bednet,hcm-base-closehousehold-oncho,hcm-base-closehousehold-default
 python3 main.py upsert --lang pt --module hcm-base-stockreconciliation-mr-dn,hcm-base-stockreconciliation-bednet,hcm-base-stockreconciliation-oncho,hcm-base-stockreconciliation-default
 python3 main.py upsert --lang pt --module hcm-base-stockreports-mr-dn,hcm-base-stockreports-bednet,hcm-base-stockreports-oncho,hcm-base-stockreports-default
-python3 main.py upsert --lang pt --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-permissionhandler-default
+python3 main.py upsert --lang pt --module hcm-base-permissionhandler-mr-dn,hcm-base-permissionhandler-bednet,hcm-base-permissionhandler-oncho,hcm-base-permissionhandler-default
 
 python3 main.py upsert --lang pt --module hcm-login,hcm-common,hcm-scanner,hcm-checklist
 python3 main.py upsert --lang pt --module hcm-peer-to-peer,hcm-transit-post,hcm-attendance,hcm-dashboard,digit-privacy-policy
